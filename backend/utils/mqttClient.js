@@ -4,7 +4,7 @@ const mqtt = require('mqtt');
 // connect to broker (can be public broker.emqx.io or your own)
 // const client = mqtt.connect('mqtt://broker.emqx.io:1883');
 // above endpoint work fine on localhost
-const client = mqtt.connect('wss://48c086e2145d4b3eb554c49bcd039382.s1.eu.hivemq.cloud:8883', {
+const client = mqtt.connect('mqtts://48c086e2145d4b3eb554c49bcd039382.s1.eu.hivemq.cloud:8883', {
     username: 'mernbook',
     password: 'T00r@123'
 });
