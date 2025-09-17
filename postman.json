@@ -1,0 +1,298 @@
+{
+    "info": {
+        "name": "Electrically Backend Full Test",
+        "_postman_id": "electrically-backend-test",
+        "description": "Full backend testing collection for Electrically app",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Customer Register",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"tel\": \"2011122233\",\n    \"email\": \"john@example.com\",\n    \"password\": \"Password123!\",\n    \"role\": \"customer\",\n    \"location\": { \"type\": \"Point\", \"coordinates\": [102.57,17.95] }\n}"
+                },
+                "url": {
+                    "raw": "http://localhost:3000/api/auth/register",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "api",
+                        "auth",
+                        "register"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Customer Login",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{ \"tel\": \"2011122233\", \"password\": \"Password123!\" }"
+                },
+                "url": {
+                    "raw": "http://localhost:3000/api/auth/login",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "api",
+                        "auth",
+                        "login"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Admin Login",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{ \"tel\": \"2012345678\", \"password\": \"AdminPass123!\" }"
+                },
+                "url": {
+                    "raw": "http://localhost:3000/api/auth/login",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "api",
+                        "auth",
+                        "login"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Create Booking (Customer)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{CUSTOMER_TOKEN}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"electricianId\": \"{{ELECTRICIAN_ID}}\",\n    \"schedule\": \"2025-09-20T09:00:00Z\",\n    \"detail\": \"Fix living room light\",\n    \"location\": { \"type\": \"Point\", \"coordinates\": [102.57,17.95] }\n}"
+                },
+                "url": {
+                    "raw": "http://localhost:3000/api/bookings",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "api",
+                        "bookings"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Fetch My Bookings (Customer)",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{CUSTOMER_TOKEN}}"
+                    }
+                ],
+                "url": {
+                    "raw": "http://localhost:3000/api/bookings/me",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "api",
+                        "bookings",
+                        "me"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Electrician Login",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{ \"tel\": \"2098765432\", \"password\": \"ElecPass123!\" }"
+                },
+                "url": {
+                    "raw": "http://localhost:3000/api/auth/login",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "api",
+                        "auth",
+                        "login"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Electrician Incoming Bookings",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{ELECTRICIAN_TOKEN}}"
+                    }
+                ],
+                "url": {
+                    "raw": "http://localhost:3000/api/bookings/incoming",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "api",
+                        "bookings",
+                        "incoming"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Electrician Accept/Reject Booking",
+            "request": {
+                "method": "PATCH",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    },
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{ELECTRICIAN_TOKEN}}"
+                    }
+                ],
+                "body": {
+                    "mode": "raw",
+                    "raw": "{ \"action\": \"accept\" }"
+                },
+                "url": {
+                    "raw": "http://localhost:3000/api/bookings/{{BOOKING_ID}}/status",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "api",
+                        "bookings",
+                        "{{BOOKING_ID}}",
+                        "status"
+                    ]
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "Admin Fetch All Bookings",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Authorization",
+                        "value": "Bearer {{ADMIN_TOKEN}}"
+                    }
+                ],
+                "url": {
+                    "raw": "http://localhost:3000/api/admin/bookings",
+                    "protocol": "http",
+                    "host": [
+                        "localhost"
+                    ],
+                    "port": "3000",
+                    "path": [
+                        "api",
+                        "admin",
+                        "bookings"
+                    ]
+                }
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "CUSTOMER_TOKEN",
+            "value": ""
+        },
+        {
+            "key": "ADMIN_TOKEN",
+            "value": ""
+        },
+        {
+            "key": "ELECTRICIAN_TOKEN",
+            "value": ""
+        },
+        {
+            "key": "ELECTRICIAN_ID",
+            "value": ""
+        },
+        {
+            "key": "BOOKING_ID",
+            "value": ""
+        }
+    ]
+}
