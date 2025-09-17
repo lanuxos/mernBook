@@ -3,6 +3,7 @@ const mqtt = require('mqtt');
 
 // connect to broker (can be public broker.emqx.io or your own)
 // const client = mqtt.connect('mqtt://broker.emqx.io:1883');
+// above endpoint work fine on localhost
 const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
 
 client.on('connect', () => {
