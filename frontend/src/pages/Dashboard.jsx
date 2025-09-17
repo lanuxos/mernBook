@@ -39,7 +39,10 @@ export default function Dashboard() {
     // ---------- MQTT Connection ----------
     useEffect(() => {
         const userId = localStorage.getItem('userId'); // or decode from JWT
-        const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+        const client = mqtt.connect('mqtts://48c086e2145d4b3eb554c49bcd039382.s1.eu.hivemq.cloud:8883', {
+            username: 'mernbook',
+            password: 'T00r@123'
+        });
         clientRef.current = client;
 
         // Subscribe based on role + ID
