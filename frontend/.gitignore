@@ -22,9 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-*prompt.md
-*prompt*
-.prompt.md
+prompt.md
 # Logs
 logs
 *.log
