@@ -5,12 +5,8 @@ const { publishBookingUpdate } = require('../utils/mqttClient');
 // customer creates booking
 exports.createBooking = async (req, res, next) => {
     try {
-        // only customers can book (but business could allow admin create)
-        // if (req.user.role !== 'customer') return res.status(403).json({ message: 'Only customers can create bookings' });
-
         const { electricianId, schedule, detail, location } = req.body;
 
-        // check electrician exists and isVerified
         const electrician = await Profile.findById(electricianId);
         if (!electrician || electrician.role !== 'electrician' || !electrician.isVerified) {
             return res.status(400).json({ message: 'Invalid electrician (not found / not verified)' });
@@ -26,11 +22,15 @@ exports.createBooking = async (req, res, next) => {
 
         await booking.save();
 
-        publishBookingUpdate(`bookings/electrician/${electrician._id}`, {
-            bookingId: booking._id,
+        const topic = `bookings/electrician/${String(electrician._id)}`;
+        const payload = {
+            bookingId: booking._id.toString(),
             status: booking.status,
             message: '📩 You have a new booking request',
-        });
+        };
+
+        console.log("[MQTT][createBooking] Publish →", topic, payload);
+        publishBookingUpdate(topic, payload);
 
         res.status(201).json(booking);
     } catch (err) {
@@ -44,7 +44,8 @@ exports.getMyBookings = async (req, res, next) => {
         const user = req.user;
         if (user.role !== 'customer') return res.status(403).json({ message: 'Only customers use this endpoint' });
 
-        const bookings = await Booking.find({ customerId: user._id }).populate('electricianId', 'firstName lastName tel');
+        const bookings = await Booking.find({ customerId: user._id })
+            .populate('electricianId', 'firstName lastName tel');
         res.json(bookings);
     } catch (err) {
         next(err);
@@ -56,7 +57,8 @@ exports.getIncoming = async (req, res, next) => {
     try {
         if (req.user.role !== 'electrician') return res.status(403).json({ message: 'Only electricians use this endpoint' });
 
-        const bookings = await Booking.find({ electricianId: req.user._id }).populate('customerId', 'firstName lastName tel');
+        const bookings = await Booking.find({ electricianId: req.user._id })
+            .populate('customerId', 'firstName lastName tel');
         res.json(bookings);
     } catch (err) {
         next(err);
@@ -84,7 +86,6 @@ exports.updateStatus = async (req, res, next) => {
         }
 
         else if (req.user.role === 'customer') {
-            // Customers can only cancel bookings that are not yet confirmed
             if (action !== 'cancelled') {
                 return res.status(400).json({ message: 'Invalid action for customer' });
             }
@@ -98,7 +99,7 @@ exports.updateStatus = async (req, res, next) => {
             if (!['deleted', 'pending'].includes(action)) {
                 return res.status(400).json({ message: 'Invalid action for admin' });
             }
-            booking.status = action; // soft delete or pending
+            booking.status = action;
         }
 
         else {
@@ -109,9 +110,8 @@ exports.updateStatus = async (req, res, next) => {
 
         // --- Refined Notification Logic ---
         const actorRole = req.user.role;
-        const { status, customerId, electricianId } = booking;
+        const { _id, status, customerId, electricianId } = booking;
 
-        // Define messages for different statuses
         const messages = {
             confirmed: '✅ Your booking has been confirmed!',
             cancelled: '❌ Your booking has been cancelled.',
@@ -119,29 +119,38 @@ exports.updateStatus = async (req, res, next) => {
             deleted: '🗑️ A booking was deleted by an admin.'
         };
 
-        // 1. Always notify the admin of any change
-        publishBookingUpdate('bookings/admin', {
-            bookingId,
+        // 1. Always notify admin
+        const adminTopic = `bookings/admin`;
+        const adminPayload = {
+            bookingId: _id.toString(),
             status,
-            message: `ℹ️ Booking ${bookingId} updated to ${status} by a ${actorRole}.`,
-        });
+            message: `ℹ️ Booking ${_id} updated to ${status} by a ${actorRole}.`,
+        };
+        console.log("[MQTT][updateStatus] Publish →", adminTopic, adminPayload);
+        publishBookingUpdate(adminTopic, adminPayload);
 
-        // 2. Notify the customer about changes made by the electrician
+        // 2. Notify customer when electrician updates
         if (actorRole === 'electrician' && messages[status]) {
-            publishBookingUpdate(`bookings/customer/${customerId}`, {
-                bookingId,
+            const customerTopic = `bookings/customer/${String(customerId)}`;
+            const customerPayload = {
+                bookingId: _id.toString(),
                 status,
                 message: messages[status],
-            });
+            };
+            console.log("[MQTT][updateStatus] Publish →", customerTopic, customerPayload);
+            publishBookingUpdate(customerTopic, customerPayload);
         }
 
-        // 3. Notify the electrician about changes made by the customer
+        // 3. Notify electrician when customer cancels
         if (actorRole === 'customer' && status === 'cancelled') {
-            publishBookingUpdate(`bookings/electrician/${electricianId}`, {
-                bookingId,
+            const electricianTopic = `bookings/electrician/${String(electricianId)}`;
+            const electricianPayload = {
+                bookingId: _id.toString(),
                 status,
                 message: `❌ A booking was cancelled by the customer.`,
-            });
+            };
+            console.log("[MQTT][updateStatus] Publish →", electricianTopic, electricianPayload);
+            publishBookingUpdate(electricianTopic, electricianPayload);
         }
 
         res.json(booking);
@@ -151,11 +160,11 @@ exports.updateStatus = async (req, res, next) => {
     }
 };
 
-
 // admin can list all bookings
 exports.listAll = async (req, res, next) => {
     try {
-        const bookings = await Booking.find().populate('customerId electricianId', 'firstName lastName tel role');
+        const bookings = await Booking.find()
+            .populate('customerId electricianId', 'firstName lastName tel role');
         res.json(bookings);
     } catch (err) {
         next(err);

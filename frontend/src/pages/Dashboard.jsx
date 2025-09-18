@@ -39,10 +39,14 @@ export default function Dashboard() {
     // ---------- MQTT Connection ----------
     useEffect(() => {
         const userId = localStorage.getItem('userId'); // or decode from JWT
-        const client = mqtt.connect('wss://48c086e2145d4b3eb554c49bcd039382.s1.eu.hivemq.cloud:8884/mqtt', {
-            username: 'mernbook',
-            password: 'T00r@123'
-        });
+        console.log(`[MQTT Setup] Role: ${role}, UserID: ${userId}`);
+
+        if (!userId && (role === 'customer' || role === 'electrician')) {
+            console.error('[MQTT Setup] ABORTING: Missing userId for role-specific topic.');
+            return;
+        }
+
+        const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt'); // wss://broker.emqx.io:8084/mqtt
         clientRef.current = client;
 
         // Subscribe based on role + ID
@@ -54,22 +58,35 @@ export default function Dashboard() {
         } else {
             topic = `bookings/admin`; // admin listens to global
         }
+        console.log(`[MQTT Setup] Generated Topic: ${topic}`);
 
         client.on('connect', () => {
-            console.log('✅ MQTT connected');
+            console.log('✅ MQTT client connected to broker.');
             client.subscribe(topic, (err) => {
-                if (!err) console.log(`📡 Subscribed to ${topic}`);
+                if (err) {
+                    console.error(`[MQTT Subscribe] ❌ Failed to subscribe to ${topic}:`, err);
+                } else {
+                    console.log(`📡 [MQTT Subscribe] Subscribed to ${topic}`);
+                }
             });
+        });
+
+        client.on('error', (err) => {
+            console.error('❌ MQTT Connection Error:', err);
+        });
+
+        client.on('close', () => {
+            console.log('🔌 MQTT connection closed.');
         });
 
         client.on('message', (t, message) => {
             try {
-                const payload = JSON.parse(message.toString());
-                console.log('📩 MQTT Message:', payload);
+                const raw = message.toString();
+                console.log(`📥 [MQTT Message] Topic: ${t}, Raw: ${raw}`);
 
-                // Since the backend sends messages to role-specific topics,
-                // we can assume any message received is intended for the current user.
-                // We just need to determine the alert type.
+                const payload = JSON.parse(raw);
+                console.log(`📥 [MQTT Message Parsed]`, payload);
+
                 const alertType = (status) => {
                     if (status === 'confirmed') return 'success';
                     if (['cancelled', 'deleted'].includes(status)) return 'warning';
@@ -84,12 +101,15 @@ export default function Dashboard() {
 
                 load(); // refresh bookings
             } catch (err) {
-                console.error('MQTT parse error:', err);
+                console.error('❌ [MQTT Parse Error]:', err);
             }
         });
 
         return () => {
-            if (client) client.end();
+            if (client) {
+                console.log('🔌 Disconnecting MQTT client');
+                client.end(true); // Force close
+            }
         };
     }, [role]);
 

@@ -1,13 +1,11 @@
 // utils/mqttClient.js
 const mqtt = require('mqtt');
 
-// connect to broker (can be public broker.emqx.io or your own)
+// Connect to the standard MQTT port (1883), not the WebSocket port (8084).
+// The backend uses the native MQTT protocol, while the frontend uses WebSockets.
 // const client = mqtt.connect('mqtt://broker.emqx.io:1883');
-// above endpoint work fine on localhost
-const client = mqtt.connect('mqtts://48c086e2145d4b3eb554c49bcd039382.s1.eu.hivemq.cloud:8883', {
-    username: 'mernbook',
-    password: 'T00r@123'
-});
+// const client = mqtt.connect('ws://broker.emqx.io:8083/mqtt'); // wss://broker.emqx.io:8084/mqtt
+const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt'); // 
 
 client.on('connect', () => {
     console.log('✅ MQTT connected from backend');
