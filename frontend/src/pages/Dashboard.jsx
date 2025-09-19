@@ -143,7 +143,7 @@ export default function Dashboard() {
                             {paginatedData.map((b) => (
                                 <div
                                     key={b._id}
-                                    className="bg-gray-800 dark:bg-gray-800 p-3 rounded flex justify-between items-start"
+                                    className="border border-yellow-500 bg-gray-800 dark:bg-gray-800 p-3 rounded flex justify-between items-start"
                                 >
                                     <div>
                                         <div className="font-semibold text-white dark:text-white">
