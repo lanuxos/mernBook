@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import Booking from './pages/Booking';
 import Dashboard from './pages/Dashboard';
 import NotFound from './pages/NotFound';
+import ElectricianDetail from './pages/ElectricianDetail';
 import ProtectedRoute from './components/ProtectedRoute';
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/electrician/:id" element={<ElectricianDetail />} />
 
         <Route path="/booking" element={
           <ProtectedRoute><Booking /></ProtectedRoute>

@@ -37,3 +37,26 @@ exports.getElectricians = async (req, res) => {
         });
     }
 };
+
+// @desc    Get single electrician by ID
+// @route   GET /api/electricians/:id
+// @access  Public
+exports.getElectricianById = async (req, res, next) => {
+    try {
+        const electrician = await Profile.findById(req.params.electricianId);
+
+        if (!electrician || electrician.role !== 'electrician') {
+            return res.status(404).json({ success: false, message: 'Electrician not found' });
+        }
+
+        // The .toJSON() method on the model will automatically be called, removing sensitive fields
+        res.json({ success: true, electrician });
+
+    } catch (error) {
+        console.error(`Error fetching electrician by ID ${req.params.electricianId}:`, error);
+        if (error.name === 'CastError') {
+            return res.status(400).json({ success: false, message: 'Invalid electrician ID format' });
+        }
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+};

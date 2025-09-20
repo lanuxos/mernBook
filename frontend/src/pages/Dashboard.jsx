@@ -5,6 +5,31 @@ import Navbar from '../components/Navbar';
 import Swal from 'sweetalert2';
 import FooterAds from '../components/FooterAds';
 import mqtt from 'mqtt';
+import { StarIcon } from '@heroicons/react/24/solid';
+
+// Interactive Star Rating Component
+const StarRatingInput = ({ rating = 0, onRatingChange }) => {
+    const [hoverRating, setHoverRating] = useState(0);
+    const totalStars = 5;
+
+    return (
+        <div className="flex items-center">
+            {[...Array(totalStars)].map((_, index) => {
+                const starValue = index + 1;
+                return (
+                    <StarIcon
+                        key={index}
+                        className={`w-6 h-6 cursor-pointer transition-colors ${starValue <= (hoverRating || rating) ? 'text-yellow-400' : 'text-gray-500'
+                            }`}
+                        onClick={() => onRatingChange(starValue)}
+                        onMouseEnter={() => setHoverRating(starValue)}
+                        onMouseLeave={() => setHoverRating(0)}
+                    />
+                );
+            })}
+        </div>
+    );
+};
 
 export default function Dashboard() {
     const [data, setData] = useState([]);
@@ -125,6 +150,18 @@ export default function Dashboard() {
         }
     };
 
+    // ---------- Handle Rating ----------
+    const handleRating = async (id, rating) => {
+        try {
+            // This assumes an API endpoint exists to submit a rating.
+            await bookingAPI.updateStatus(id, 'rated', { rating });
+            Swal.fire('Rated!', 'Thank you for your feedback.', 'success');
+            load();
+        } catch (err) {
+            Swal.fire('Error', err.response?.data?.message || 'Failed to submit rating.', 'error');
+        }
+    };
+
     // ---------- Pagination ----------
     const totalPages = Math.ceil(data.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -216,7 +253,11 @@ export default function Dashboard() {
                                                         if (b.status === 'confirmed') newStatus = 'pending';
                                                         updateStatus(b._id, newStatus);
                                                     }}
-                                                    className="px-3 py-1 rounded text-white bg-red-700"
+                                                    disabled={b.status === 'pending' || b.status === 'cancelled'}
+                                                    className={`px-3 py-1 rounded text-white bg-red-700" ${b.status === 'pending' || b.status === 'cancelled'
+                                                        ? 'bg-gray-400 cursor-not-allowed'
+                                                        : 'bg-red-700'
+                                                        }`}
                                                 >
                                                     Reject
                                                 </button>
@@ -224,16 +265,21 @@ export default function Dashboard() {
                                         )}
 
                                         {role === 'customer' && (
-                                            <button
-                                                onClick={() => updateStatus(b._id, 'cancelled')}
-                                                disabled={b.status === 'confirmed'}
-                                                className={`px-3 py-1 rounded text-white ${b.status === 'confirmed'
-                                                    ? 'bg-gray-400 cursor-not-allowed'
-                                                    : 'bg-red-700 hover:bg-gray-600'
-                                                    }`}
-                                            >
-                                                Cancel
-                                            </button>
+                                            <div className="flex items-center gap-2">
+                                                {b.status === 'confirmed' && !b.rating && (
+                                                    <StarRatingInput rating={b.rating} onRatingChange={(newRating) => handleRating(b._id, newRating)} />
+                                                )}
+                                                <button
+                                                    onClick={() => updateStatus(b._id, 'cancelled')}
+                                                    disabled={b.status === 'confirmed'}
+                                                    className={`px-3 py-1 rounded text-white ${b.status === 'confirmed'
+                                                        ? 'bg-gray-400 cursor-not-allowed'
+                                                        : 'bg-red-700 hover:bg-gray-600'
+                                                        }`}
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
                                         )}
 
                                         {role === 'admin' && (

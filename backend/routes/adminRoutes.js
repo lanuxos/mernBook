@@ -8,6 +8,7 @@ const { permit } = require('../middleware/role');
 // admin endpoints (protected)
 router.get('/electricians/unverified', auth, permit('admin'), adminController.listUnverified);
 router.post('/electricians/:electricianId/verify', auth, permit('admin'), adminController.verifyElectrician);
+router.post('/electricians/:electricianId/unverify', auth, permit('admin'), adminController.unVerifyElectrician);
 
 // admin list all bookings
 router.get('/bookings', auth, permit('admin'), bookingController.listAll);

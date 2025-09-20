@@ -23,3 +23,17 @@ exports.verifyElectrician = async (req, res, next) => {
         next(err);
     }
 };
+
+// un-verify electrician
+exports.unVerifyElectrician = async (req, res, next) => {
+    try {
+        const { electricianId } = req.params;
+        const electrician = await Profile.findById(electricianId);
+        if (!electrician || electrician.role !== 'electrician') return res.status(404).json({ message: 'Electrician not found' });
+        electrician.isVerified = false;
+        await electrician.save();
+        res.json({ message: 'Electrician verified', electrician });
+    } catch (err) {
+        next(err);
+    }
+};

@@ -32,7 +32,8 @@ export const authAPI = {
 
 export const electricianAPI = {
     // backend should implement GET /electricians?search=...
-    list: (search = '') => api.get(`/electricians${search ? `?search=${encodeURIComponent(search)}` : ''}`)
+    list: (search = '') => api.get(`/electricians${search ? `?search=${encodeURIComponent(search)}` : ''}`),
+    getById: (id) => api.get(`/electricians/${id}`),
 };
 
 export const bookingAPI = {
@@ -41,4 +42,9 @@ export const bookingAPI = {
     getIncoming: () => api.get('/bookings/incoming'),
     adminAll: () => api.get('/admin/bookings'),
     updateStatus: (bookingId, action) => api.patch(`/bookings/${bookingId}/status`, { action }),
+};
+
+export const adminAPI = {
+    verifyElectrician: (electricianId) => api.post(`/admin/electricians/${electricianId}/verify`),
+    unVerifyElectrician: (electricianId) => api.post(`/admin/electricians/${electricianId}/unverify`),
 };
